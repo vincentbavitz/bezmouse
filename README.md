@@ -1,6 +1,6 @@
 # BezMouse
 
-BezMouse is a tool written in Python to simulate human-like mouse movements with [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve).
+BezMouse is a lightweight tool written in Python to simulate human-like mouse movements with [Bézier curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve).
 Some applications might include:
   - aimbots (prevent bans)
   - MMORPG bots (avoid macro detection)
