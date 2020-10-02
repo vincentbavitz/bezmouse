@@ -31,6 +31,10 @@ Each of the **move_*** functions are abstractions from the **move** function whi
   - [more_itertools](https://more-itertools.readthedocs.io/en/latest/)
   - [maim](https://github.com/naelstrof/maim)
 
+## Instructions
+```
+git clone https://github.com/xvol/bezmouse.git
+```
 
 ## Development
 Find something wrong with my code? See room for improvement? Please let me know!
