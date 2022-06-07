@@ -1,16 +1,19 @@
+from fileinput import filename
+from operator import truediv
 import pyautogui
 import os, subprocess
 from time import sleep
 from random import randint, choice
 from math import ceil
 from tools import remove_dups, draw_points
-from multiprocessing import Process
+import platform
 
 #WORKING DIRECTORY
 CWD = os.path.dirname(os.path.realpath(__file__))
 
 pyautogui.MINIMUM_DURATION = 0.01
 
+pathToAHK = 'C:\\Program Files\\AutoHotkey\\autohotkey.exe'
 
 def real_click():
     '''This function clicks the mouse with realistic errors:
@@ -30,7 +33,6 @@ def real_click():
             pyautogui.click()
         elif tmp_rand == 2:
             pyautogui.click(button = 'right')
-            
 
 def move_to_img(img_name, deviation, speed):
     '''
@@ -66,7 +68,6 @@ def move_to_img(img_name, deviation, speed):
         print("Can't find location")
         return False
 
-
 def move_to_area(x, y, width, height, deviation, speed):
     '''
     Arguments same as pyautogui.locateAllOnScreen format: x and y are top left corner
@@ -81,7 +82,6 @@ def move_to_area(x, y, width, height, deviation, speed):
     y_coord = y + randint(0, height)
     
     move(mouse_bez(init_pos, (x_coord, y_coord), deviation, speed))
-  
     
 def pascal_row(n):
     # This returns the nth row of Pascal's Triangle
@@ -99,8 +99,6 @@ def pascal_row(n):
     else:
         result.extend(reversed(result)) 
     return result
-
-
     
 def make_bezier(xys):
 
@@ -176,11 +174,12 @@ def connected_bez(coord_list, deviation, speed):
     
     return points
 
-
 def move(mouse_points, draw = False, rand_err = True):
     '''
     Moves mouse in accordance with a list of points (continuous curve)
     Input these as a list of points (2-tuple or another list)
+    
+For Linux:
     
     Generates file (mouse.sh) in ./tmp/ and runs it as bash file
     
@@ -193,47 +192,82 @@ def move(mouse_points, draw = False, rand_err = True):
     You may wish to generate smooth bezier curve points to input into this
     function. In this case, take mouse_bez(init_pos, fin_pos, deviation, speed)
     as the argument.
-    
-    PARAMETERS:
-        mouse_points
-            list of 2-tuples or lists of ints or floats representing xy coords
-        draw
-            a boolean deciding whether or not to draw the curve the mouse makes
-            to a file in /tmp/
-    '''
-    
-    fname = 'mouse.sh'
-     
-    outfile = open(CWD + '/tmp/' + fname, 'w')
-    os.system('chmod +x ' + CWD + '/tmp/' + fname)
-    outfile.write('#!/bin/bash')
-    outfile.write('\n\n')
-    
-    #draw coords to file in ./tmp/
-    if draw == True:
-        drawpoints = [(v[0] - REL_ORIGIN[0], v[1] - REL_ORIGIN[1]) for v in mouse_points if type(v) is not str]
-        draw_points(drawpoints, width = 754, height = 503)    
-    
-    
-    #round floats to ints
-    mouse_points = [[round(v) for v in x] if type(x) is not str else x for x in mouse_points]
-    for coord in mouse_points:
-        if coord == 'click':
-            if rand_err:
-                tmp = randint(1,39)
-                if tmp == 1:
-                    outfile.write('xdotool click 3 \n')
-                elif tmp == 2:
-                    outfile.write('xdotool click --repeat 2 1 \n')
-                elif tmp in range(4, 40):   #if tmp == 4, write nothing
-                    outfile.write('xdotool click 1 \n') #normal click
-            else:
-                outfile.write('xdotool click 1 \n')
-        else:
-            outfile.write('xdotool mousemove ' + str(coord[0]) + ' ' + str(coord[1]) + '\n')
-     
-    outfile.close()
-    subprocess.call([CWD + '/tmp/' + fname])
-    
 
+For Windows:
     
+    Generates a file (mouse.au3) in ./tmp/ and runs it with AutoIt3
+
+    You need to put AutoIt3.exe in your environment paths, or you can replace 'autoit3',
+    in line 233 with the path to autoit3
+
+PARAMETERS:
+    mouse_points
+        list of 2-tuples or lists of ints or floats representing xy coords
+    draw
+        a boolean deciding whether or not to draw the curve the mouse makes
+        to a file in /tmp/
+    '''
+    #Windows
+    if(platform.system() == 'Windows'):
+        fname = 'mouse.au3'
+
+        #Checks if path exists, if it doesn't we create it.
+        if not os.path.exists(CWD + '/tmp/'):
+            os.mkdir(CWD + '/tmp/')
+
+        outfile = open(CWD + '/tmp/' + fname, 'w')
+
+        mouse_points = [[round(v) for v in x] if type(x) is not str else x for x in mouse_points]
+        for coord in mouse_points:
+            if coord == 'click':
+                if rand_err:
+                    tmp = randint(1,39)
+                    if tmp == 1:
+                        outfile.write('MouseClick(0) \n')
+                    elif tmp == 2:
+                        outfile.write('MouseClick(0) \n MouseClick(0) \n')
+                    elif tmp in range(4, 40):   #if tmp == 4, write nothing
+                        outfile.write('MouseClick(0) \n') #normal click
+                else:
+                    outfile.write('MouseClick(0) \n')
+            else:
+                outfile.write('MouseMove(' + str(coord[0]) + ',' + str(coord[1]) + ',1' +  ')' + '\n')
+
+        outfile.close()
+        tmpFilePath = CWD + '\\tmp\\mouse.au3'
+        subprocess.call(['autoit3', tmpFilePath])
+
+    #Linux
+    else:
+        fname = 'mouse.sh'
+     
+        outfile = open(CWD + '/tmp/' + fname, 'w')
+        os.system('chmod +x ' + CWD + '/tmp/' + fname)
+        outfile.write('#!/bin/bash')
+        outfile.write('\n\n')
+    
+        #draw coords to file in ./tmp/
+        if draw == True:
+            drawpoints = [(v[0] - REL_ORIGIN[0], v[1] - REL_ORIGIN[1]) for v in mouse_points if type(v) is not str]
+            draw_points(drawpoints, width = 754, height = 503)    
+    
+    
+        #round floats to ints
+        mouse_points = [[round(v) for v in x] if type(x) is not str else x for x in mouse_points]
+        for coord in mouse_points:
+            if coord == 'click':
+                if rand_err:
+                    tmp = randint(1,39)
+                    if tmp == 1:
+                        outfile.write('xdotool click 3 \n')
+                    elif tmp == 2:
+                        outfile.write('xdotool click --repeat 2 1 \n')
+                    elif tmp in range(4, 40):   #if tmp == 4, write nothing
+                        outfile.write('xdotool click 1 \n') #normal click
+                else:
+                    outfile.write('xdotool click 1 \n')
+            else:
+                outfile.write('xdotool mousemove ' + str(coord[0]) + ' ' + str(coord[1]) + '\n')
+     
+        outfile.close()
+        subprocess.call([CWD + '/tmp/' + fname])
