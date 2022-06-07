@@ -197,7 +197,7 @@ For Windows:
     
     Generates a file (mouse.au3) in ./tmp/ and runs it with AutoIt3
 
-    You need to put AutoIt3.exe in your environment paths, or you can replace 'autit3',
+    You need to put AutoIt3.exe in your environment paths, or you can replace 'autoit3',
     in line 233 with the path to autoit3
 
 PARAMETERS:
